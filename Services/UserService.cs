@@ -1,4 +1,5 @@
 ﻿using API.Models;
+using API.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -21,8 +22,12 @@ namespace API.Services
 
         public string Login(string userName, string password)
         {
-            var user = GetUsers().SingleOrDefault(x => x.UserName == userName && x.Password == password);
-            
+            var user = GetUsers().SingleOrDefault(x => x.UserName == userName);
+            // check password return null if password is false
+            if (CommonMethods.ConvertToDecrypt(user.Password) != password)
+            {
+                return string.Empty;
+            }
             // return null if user not found
             if (user == null)
             {
@@ -86,6 +91,7 @@ namespace API.Services
         {
             if (!DoesExist(user.UserName))
             {
+                user.Password = CommonMethods.ConvertToEncrypt(user.Password);
                 _dbContext.Add(user);
                 Save();
             }
